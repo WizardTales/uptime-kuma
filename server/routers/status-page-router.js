@@ -92,8 +92,17 @@ router.get("/api/status-page/heartbeat/:slug", cache("1 minutes"), async (reques
             list = R.convertToBeans("heartbeat", list);
             heartbeatList[monitorID] = list.reverse().map(row => row.toPublicJSON());
 
-            const type = 24;
-            uptimeList[`${monitorID}_${type}`] = await Monitor.calcUptime(type, monitorID);
+            const type = process.env.UPTIME_KUMA_STATUS_PAGE_RANGE || 24;
+            switch(process.env.UPTIME_KUMA_STATUS_PAGE_RANGE) {
+                case '720':
+                    uptimeList[`${monitorID}_24`] = await Monitor.calcUptime(type, monitorID);
+                    break;
+
+                case '24':
+                default:
+                    uptimeList[`${monitorID}_${type}`] = await Monitor.calcUptime(type, monitorID);
+                    break;
+            }
         }
 
         response.json({
